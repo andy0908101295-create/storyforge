@@ -1,0 +1,539 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="原創小說架構生成器，協助規劃故事大綱、角色關係、章節與伏筆。">
+  <title>StoryForge｜AI 原創小說架構生成器</title>
+  <style>
+    :root {
+      --primary: #7458d8;
+      --primary-light: #f1edff;
+      --text: #25243a;
+      --muted: #77778b;
+      --border: #e8e6ef;
+      --bg: #f8f8fc;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Noto Sans TC",
+        "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+    }
+
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo { font-size: 21px; font-weight: 800; }
+    .logo span { color: var(--primary); }
+
+    .tag {
+      font-size: 12px;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .hero { text-align: center; margin-bottom: 32px; }
+    .hero h1 { font-size: clamp(27px, 4vw, 38px); margin: 0 0 12px; }
+    .hero p { color: var(--muted); margin: 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 25px;
+      margin-bottom: 20px;
+      min-width: 0;
+    }
+
+    .card h2 { font-size: 19px; margin: 0 0 20px; }
+    .field { margin-bottom: 17px; }
+
+    label {
+      display: block;
+      font-weight: 650;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    .optional { color: var(--muted); font-weight: 400; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid #dedce8;
+      border-radius: 9px;
+      font: inherit;
+      font-size: 14px;
+      background: white;
+      color: var(--text);
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid #d8ceff;
+      border-color: var(--primary);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+    .safety {
+      padding: 13px;
+      border-radius: 10px;
+      background: #f7f5ff;
+      font-size: 12px;
+      color: #5c5181;
+      margin: 16px 0;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .2s;
+    }
+
+    button:hover { opacity: .88; }
+    button:active { transform: scale(.99); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+    }
+
+    .secondary {
+      color: var(--primary);
+      background: var(--primary-light);
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .results-header h2 { margin: 0; }
+
+    .result-section {
+      border-top: 1px solid var(--border);
+      padding: 19px 0;
+    }
+
+    .result-section h3 { font-size: 16px; margin: 0 0 10px; }
+    .result-content { font-size: 14px; overflow-wrap: anywhere; }
+    .result-content p { margin: 7px 0; white-space: pre-wrap; }
+    .result-content ul { padding-left: 22px; }
+
+    .chapter {
+      background: #faf9ff;
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .chapter strong { color: var(--primary); }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 45px 15px;
+      font-size: 14px;
+    }
+
+    .status {
+      font-size: 13px;
+      margin: 12px 0 0;
+      overflow-wrap: anywhere;
+    }
+
+    .error { color: #b42318; }
+    .success { color: #16794b; }
+
+    footer {
+      text-align: center;
+      padding: 25px 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      main { margin-top: 25px; }
+      header { padding: 16px 5%; }
+      .card { padding: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Story<span>Forge</span></div>
+    <span class="tag">AI 原創小說助手</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>讓你的故事，從靈感開始</h1>
+      <p>建立故事大綱、角色關係、章節規劃與伏筆。</p>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2>01 / 設定你的小說</h2>
+
+        <form id="storyForm">
+          <div class="field">
+            <label for="genre">小說風格</label>
+            <select id="genre" name="genre" required>
+              <option value="奇幻冒險">奇幻冒險</option>
+              <option value="本格推理">本格推理</option>
+              <option value="科幻">科幻</option>
+              <option value="校園青春">校園青春</option>
+              <option value="愛情">愛情</option>
+              <option value="懸疑驚悚">懸疑驚悚</option>
+              <option value="歷史">歷史</option>
+              <option value="輕鬆喜劇">輕鬆喜劇</option>
+              <option value="自訂原創風格">自訂原創風格</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="customStyle">補充風格描述 <span class="optional">（選填）</span></label>
+            <input id="customStyle" name="customStyle"
+              maxlength="300" placeholder="例如：節奏明快、心理描寫細膩">
+          </div>
+
+          <div class="two-col">
+            <div class="field">
+              <label for="wordCount">預計總字數</label>
+              <select id="wordCount" name="wordCount">
+                <option value="10000">1 萬字</option>
+                <option value="30000">3 萬字</option>
+                <option value="50000" selected>5 萬字</option>
+                <option value="100000">10 萬字</option>
+                <option value="custom">自訂</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="chapters">章節數量</label>
+              <input id="chapters" name="chapters"
+                type="number" min="1" max="100" value="20" required>
+            </div>
+          </div>
+
+          <div class="field" id="customWordsField" hidden>
+            <label for="customWords">自訂總字數</label>
+            <input id="customWords" type="number"
+              min="1000" max="500000" value="50000">
+          </div>
+
+          <div class="field">
+            <label for="title">小說名稱 <span class="optional">（選填）</span></label>
+            <input id="title" name="title" maxlength="100"
+              placeholder="留白則由 AI 提供建議">
+          </div>
+
+          <div class="field">
+            <label for="protagonist">主角名稱 <span class="optional">（選填）</span></label>
+            <input id="protagonist" name="protagonist" maxlength="60"
+              placeholder="留白則由 AI 自行設計">
+          </div>
+
+          <div class="field">
+            <label for="concept">故事核心概念</label>
+            <textarea id="concept" name="concept" maxlength="3000"
+              placeholder="例如：一位失去記憶的學生，發現全校同學都隱瞞著同一個秘密。" required></textarea>
+            <div class="hint">描述你自己的靈感、角色目標或希望探討的議題。</div>
+          </div>
+
+          <div class="field">
+            <label for="ending">結局偏好</label>
+            <select id="ending" name="ending">
+              <option value="合理且完整的結局">合理且完整</option>
+              <option value="反轉結局">反轉結局</option>
+              <option value="開放式結局">開放式結局</option>
+              <option value="溫暖圓滿">溫暖圓滿</option>
+              <option value="悲劇結局">悲劇結局</option>
+              <option value="由AI依劇情決定">由 AI 決定</option>
+            </select>
+          </div>
+
+          <div class="safety">
+            <strong>原創與安全原則</strong><br>
+            本工具要求 AI 獨立創作，不刻意複製既有作品或模仿特定作者的獨特表達，並拒絕不適當的違法操作指引。自動檢查無法保證絕對不侵權或完全合法。
+          </div>
+
+          <button class="primary" id="generateBtn" type="submit">
+            ✦ 生成小說架構
+          </button>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-label="小說生成結果">
+        <div class="results-header">
+          <h2>02 / 創作藍圖</h2>
+          <button type="button" class="secondary" id="copyBtn" disabled>
+            複製結果
+          </button>
+        </div>
+
+        <div id="results" aria-live="polite">
+          <div class="empty">
+            <p style="font-size:32px">✧</p>
+            <p>你的故事，將在這裡展開。</p>
+            <p>填寫左側設定，連接 AI 後即可開始生成。</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    StoryForge · AI 原創小說架構生成器<br>
+    生成內容請自行審閱，並確認符合適用法律與著作權規範。
+  </footer>
+
+  <script>
+    /*
+      上線前設定：
+      1. 部署自己的後端 API。
+      2. 將 API_ENDPOINT 改為實際的後端網址。
+      3. 不要將 AI API 金鑰寫在這個 HTML 檔案裡。
+    */
+    const API_ENDPOINT = "/api/generate";
+
+    const form = document.getElementById("storyForm");
+    const statusBox = document.getElementById("status");
+    const generateBtn = document.getElementById("generateBtn");
+    const results = document.getElementById("results");
+    const copyBtn = document.getElementById("copyBtn");
+
+    let latestResult = null;
+
+    document.getElementById("wordCount").addEventListener("change", event => {
+      document.getElementById("customWordsField").hidden =
+        event.target.value !== "custom";
+    });
+
+    // 使用 textContent 建立文字節點，避免把 AI 回傳內容當成 HTML 執行。
+    function addText(parent, tag, value) {
+      const element = document.createElement(tag);
+      element.textContent = value == null ? "" : String(value);
+      parent.appendChild(element);
+      return element;
+    }
+
+    function addSection(parent, heading, content) {
+      const section = document.createElement("section");
+      section.className = "result-section";
+      addText(section, "h3", heading);
+
+      const body = document.createElement("div");
+      body.className = "result-content";
+
+      if (typeof content === "string") {
+        addText(body, "p", content);
+      } else if (Array.isArray(content)) {
+        const list = document.createElement("ul");
+        content.forEach(item => addText(list, "li", item));
+        body.appendChild(list);
+      } else if (content && typeof content === "object") {
+        Object.entries(content).forEach(([key, value]) => {
+          const p = document.createElement("p");
+          const strong = document.createElement("strong");
+          strong.textContent = key + "：";
+          p.append(strong, document.createTextNode(String(value)));
+          body.appendChild(p);
+        });
+      }
+
+      section.appendChild(body);
+      parent.appendChild(section);
+    }
+
+    function renderResult(data) {
+      results.replaceChildren();
+
+      addSection(results, "小說名稱", data.title || "尚未命名");
+      addSection(results, "故事大綱", data.outline || "無內容");
+
+      addSection(results, "角色設定與關係", data.characters || []);
+
+      if (data.relationships) {
+        addSection(results, "角色關係圖說明", data.relationships);
+      }
+
+      const chapters = document.createElement("section");
+      chapters.className = "result-section";
+      addText(chapters, "h3", "章節規劃");
+
+      (data.chapters || []).forEach(chapter => {
+        const card = document.createElement("div");
+        card.className = "chapter";
+        addText(card, "strong",
+          `第 ${chapter.number} 章｜${chapter.title}`);
+
+        addText(card, "p", "劇情摘要：" + (chapter.summary || "待補充"));
+        addText(card, "p", "撰寫建議：" + (chapter.advice || "待補充"));
+
+        if (chapter.foreshadowing) {
+          addText(card, "p", "伏筆提示：" + chapter.foreshadowing);
+        }
+
+        chapters.appendChild(card);
+      });
+
+      results.appendChild(chapters);
+
+      addSection(results, "伏筆設計與回收", data.foreshadowing || []);
+      addSection(results, "原創性與安全檢查", data.safetyReview ||
+        "尚未提供檢查報告，請自行審閱。");
+
+      copyBtn.disabled = false;
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const wordCountSelect = document.getElementById("wordCount");
+      const wordCount = wordCountSelect.value === "custom"
+        ? Number(document.getElementById("customWords").value)
+        : Number(wordCountSelect.value);
+
+      const payload = {
+        genre: document.getElementById("genre").value,
+        customStyle: document.getElementById("customStyle").value.trim(),
+        wordCount,
+        chapters: Number(document.getElementById("chapters").value),
+        title: document.getElementById("title").value.trim(),
+        protagonist: document.getElementById("protagonist").value.trim(),
+        concept: document.getElementById("concept").value.trim(),
+        ending: document.getElementById("ending").value
+      };
+
+      if (!Number.isInteger(payload.wordCount) ||
+          payload.wordCount < 1000 || payload.wordCount > 500000) {
+        statusBox.className = "status error";
+        statusBox.textContent = "請輸入 1,000 至 500,000 之間的總字數。";
+        return;
+      }
+
+      if (payload.chapters < 1 || payload.chapters > 100) {
+        statusBox.className = "status error";
+        statusBox.textContent = "章節數量必須介於 1 至 100 章。";
+        return;
+      }
+
+      generateBtn.disabled = true;
+      generateBtn.textContent = "正在構思故事……";
+      statusBox.className = "status";
+      statusBox.textContent = "正在等待 AI 回應，請稍候。";
+
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? "尚未部署後端 API，請先完成 AI 連線設定。"
+              : `服務回應錯誤（HTTP ${response.status}）。`
+          );
+        }
+
+        const data = await response.json();
+
+        // 最低限度的結構檢查；完整安全審核必須由後端執行。
+        if (!data || typeof data.outline !== "string" ||
+            !Array.isArray(data.chapters) ||
+            !Array.isArray(data.characters) ||
+            !Array.isArray(data.foreshadowing)) {
+          throw new Error("AI 回傳格式不正確，請檢查後端輸出。");
+        }
+
+        if (data.chapters.length !== payload.chapters) {
+          throw new Error("回傳章節數與設定不符，請重新生成。");
+        }
+
+        latestResult = data;
+        renderResult(data);
+
+        statusBox.className = "status success";
+        statusBox.textContent =
+          "生成完成。請檢查故事原創性、內容安全與法律風險。";
+      } catch (error) {
+        statusBox.className = "status error";
+        statusBox.textContent = error.message ||
+          "連線失敗，請稍後再試。";
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = "✦ 生成小說架構";
+      }
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if (!latestResult) return;
+
+      try {
+        await navigator.clipboard.writeText(
+          JSON.stringify(latestResult, null, 2)
+        );
+        statusBox.className = "status success";
+        statusBox.textContent = "已複製完整結果（JSON 格式）。";
+      } catch {
+        statusBox.className = "status error";
+        statusBox.textContent =
+          "無法直接複製，請使用瀏覽器允許的安全環境開啟網站。";
+      }
+    });
+  </script>
+</body>
+</html>
