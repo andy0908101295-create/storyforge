@@ -3,537 +3,675 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="原創小說架構生成器，協助規劃故事大綱、角色關係、章節與伏筆。">
-  <title>StoryForge｜AI 原創小說架構生成器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="使用瀏覽器本機 AI 建立原創小說大綱、角色關係、章節及伏筆。">
+  <title>StoryForge｜本機 AI 小說架構生成器</title>
+
   <style>
     :root {
       --primary: #7458d8;
-      --primary-light: #f1edff;
-      --text: #25243a;
-      --muted: #77778b;
-      --border: #e8e6ef;
+      --light: #f2eeff;
       --bg: #f8f8fc;
-      --white: #ffffff;
+      --text: #29263b;
+      --muted: #77758a;
+      --border: #e8e5f0;
+      --white: #fff;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Noto Sans TC",
-        "Microsoft JhengHei", sans-serif;
-      color: var(--text);
+      font-family: system-ui, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
       background: var(--bg);
+      color: var(--text);
       line-height: 1.7;
     }
 
     header {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 18px 7%;
+      padding: 18px 6%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      background: white;
+      border-bottom: 1px solid var(--border);
     }
 
-    .logo { font-size: 21px; font-weight: 800; }
+    .logo { font-size: 22px; font-weight: 800; }
     .logo span { color: var(--primary); }
 
-    .tag {
+    .pill {
       font-size: 12px;
       color: var(--primary);
-      background: var(--primary-light);
-      padding: 5px 12px;
+      background: var(--light);
       border-radius: 20px;
+      padding: 5px 12px;
     }
 
-    main {
-      max-width: 1080px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-
-    .hero { text-align: center; margin-bottom: 32px; }
-    .hero h1 { font-size: clamp(27px, 4vw, 38px); margin: 0 0 12px; }
+    main { max-width: 1120px; margin: 36px auto; padding: 0 18px; }
+    .hero { text-align: center; margin-bottom: 28px; }
+    .hero h1 { font-size: clamp(26px, 4vw, 38px); margin: 0 0 8px; }
     .hero p { color: var(--muted); margin: 0; }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-      gap: 22px;
+      grid-template-columns: minmax(290px, .85fr) minmax(0, 1.15fr);
+      gap: 20px;
       align-items: start;
     }
 
     .card {
-      background: var(--white);
+      background: white;
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 25px;
-      margin-bottom: 20px;
+      border-radius: 17px;
+      padding: 23px;
+      margin-bottom: 18px;
       min-width: 0;
     }
 
-    .card h2 { font-size: 19px; margin: 0 0 20px; }
-    .field { margin-bottom: 17px; }
+    h2 { font-size: 19px; margin: 0 0 18px; }
+    h3 { font-size: 16px; margin: 0 0 10px; }
 
-    label {
-      display: block;
-      font-weight: 650;
-      font-size: 14px;
-      margin-bottom: 7px;
-    }
-
+    .field { margin-bottom: 15px; }
+    label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 6px; }
     .optional { color: var(--muted); font-weight: 400; }
 
     input, select, textarea {
       width: 100%;
-      padding: 11px 13px;
-      border: 1px solid #dedce8;
+      border: 1px solid #dedbe8;
       border-radius: 9px;
-      font: inherit;
-      font-size: 14px;
+      padding: 11px 12px;
       background: white;
       color: var(--text);
+      font: inherit;
+      font-size: 14px;
     }
 
     textarea { min-height: 100px; resize: vertical; }
+
     input:focus, select:focus, textarea:focus {
-      outline: 2px solid #d8ceff;
+      outline: 2px solid #dcd2ff;
       border-color: var(--primary);
     }
 
-    .two-col {
+    .two {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
-    .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
-
-    .safety {
-      padding: 13px;
-      border-radius: 10px;
-      background: #f7f5ff;
-      font-size: 12px;
-      color: #5c5181;
-      margin: 16px 0;
-    }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 5px; }
 
     button {
-      border: 0;
-      border-radius: 10px;
-      padding: 12px 18px;
       font: inherit;
       font-weight: 700;
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 15px;
       cursor: pointer;
-      transition: opacity .2s, transform .2s;
     }
 
-    button:hover { opacity: .88; }
-    button:active { transform: scale(.99); }
     button:disabled { opacity: .55; cursor: wait; }
 
-    .primary {
-      width: 100%;
+    .primary { width: 100%; background: var(--primary); color: white; }
+    .secondary { background: var(--light); color: var(--primary); font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .notice {
+      background: #f6f3ff;
+      color: #5b4b83;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      margin: 14px 0;
+    }
+
+    .progress-track {
+      height: 7px;
+      background: #eeeaf7;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
       background: var(--primary);
-      color: white;
+      transition: width .2s;
     }
 
-    .secondary {
-      color: var(--primary);
-      background: var(--primary-light);
-      font-size: 13px;
-      padding: 8px 12px;
-    }
+    #status { font-size: 13px; overflow-wrap: anywhere; }
+    .error { color: #b42318; }
+    .success { color: #16794b; }
 
-    .results-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .results-header h2 { margin: 0; }
-
-    .result-section {
-      border-top: 1px solid var(--border);
-      padding: 19px 0;
-    }
-
-    .result-section h3 { font-size: 16px; margin: 0 0 10px; }
-    .result-content { font-size: 14px; overflow-wrap: anywhere; }
-    .result-content p { margin: 7px 0; white-space: pre-wrap; }
-    .result-content ul { padding-left: 22px; }
+    .empty { text-align: center; color: var(--muted); padding: 45px 10px; }
+    .section { border-top: 1px solid var(--border); padding: 18px 0; }
+    .content { font-size: 14px; overflow-wrap: anywhere; }
+    .content p { white-space: pre-wrap; }
+    .content ul { padding-left: 22px; }
 
     .chapter {
       background: #faf9ff;
-      padding: 14px;
+      border: 1px solid #f0edf9;
       border-radius: 10px;
+      padding: 13px;
       margin-bottom: 10px;
     }
 
     .chapter strong { color: var(--primary); }
+    .chapter p { margin: 7px 0; }
 
-    .empty {
+    .relation-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    .person {
+      border: 1px solid #ded6fa;
+      background: #faf8ff;
+      border-radius: 10px;
+      padding: 10px 13px;
+      min-width: 105px;
       text-align: center;
-      color: var(--muted);
-      padding: 45px 15px;
-      font-size: 14px;
     }
 
-    .status {
+    .person strong { display: block; }
+    .person small { color: var(--muted); }
+
+    .relation {
+      background: #f7f7fb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 7px;
       font-size: 13px;
-      margin: 12px 0 0;
-      overflow-wrap: anywhere;
     }
-
-    .error { color: #b42318; }
-    .success { color: #16794b; }
 
     footer {
       text-align: center;
-      padding: 25px 20px;
       color: var(--muted);
       font-size: 12px;
+      padding: 24px;
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 780px) {
       .layout { grid-template-columns: 1fr; }
-      main { margin-top: 25px; }
-      header { padding: 16px 5%; }
-      .card { padding: 19px; }
+      .card { padding: 18px; }
+      main { margin-top: 24px; }
     }
   </style>
 </head>
-<body>
-  <header>
-    <div class="logo">Story<span>Forge</span></div>
-    <span class="tag">AI 原創小說助手</span>
-  </header>
 
-  <main>
-    <section class="hero">
-      <h1>讓你的故事，從靈感開始</h1>
-      <p>建立故事大綱、角色關係、章節規劃與伏筆。</p>
+<body>
+<header>
+  <div class="logo">Story<span>Forge</span></div>
+  <span class="pill">免費・本機 AI</span>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>讓你的故事，從靈感開始</h1>
+    <p>規劃故事大綱、角色關係、章節與伏筆。</p>
+  </section>
+
+  <div class="layout">
+    <section class="card">
+      <h2>01 / 小說設定</h2>
+
+      <div class="field">
+        <label for="genre">小說風格</label>
+        <select id="genre">
+          <option>奇幻冒險</option>
+          <option>本格推理</option>
+          <option>科幻</option>
+          <option>校園青春</option>
+          <option>愛情</option>
+          <option>懸疑驚悚</option>
+          <option>歷史</option>
+          <option>輕鬆喜劇</option>
+          <option>自訂原創風格</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="style">風格補充 <span class="optional">（選填）</span></label>
+        <input id="style" maxlength="300"
+          placeholder="例如：節奏明快、心理描寫細膩">
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="words">預計總字數</label>
+          <select id="words">
+            <option value="10000">1 萬字</option>
+            <option value="30000">3 萬字</option>
+            <option value="50000" selected>5 萬字</option>
+            <option value="100000">10 萬字</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="count">章節數量</label>
+          <input id="count" type="number" min="1" max="30" value="10">
+          <div class="hint">小型模型建議先生成 5–10 章。</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="title">小說名稱 <span class="optional">（選填）</span></label>
+        <input id="title" maxlength="100" placeholder="由 AI 提供名稱也可以">
+      </div>
+
+      <div class="field">
+        <label for="heroName">主角名稱 <span class="optional">（選填）</span></label>
+        <input id="heroName" maxlength="60" placeholder="由 AI 設計主角也可以">
+      </div>
+
+      <div class="field">
+        <label for="concept">故事核心概念</label>
+        <textarea id="concept" maxlength="2000"
+          placeholder="例如：一名學生發現，每當午夜鐘聲響起，學校就會少掉一個人的記憶。" required></textarea>
+      </div>
+
+      <div class="field">
+        <label for="ending">結局偏好</label>
+        <select id="ending">
+          <option>合理且完整的結局</option>
+          <option>反轉結局</option>
+          <option>開放式結局</option>
+          <option>溫暖圓滿</option>
+          <option>悲劇結局</option>
+          <option>由 AI 依劇情決定</option>
+        </select>
+      </div>
+
+      <div class="notice">
+        <strong>本機運算說明</strong><br>
+        模型下載完成後，文字推論在你的裝置上執行，不需 AI API 金鑰。網站程式與模型仍須透過網路取得。
+        請勿將 AI 的安全承諾視為法律保證。
+      </div>
+
+      <div class="actions">
+        <button id="loadBtn" class="secondary" type="button">① 載入本機 AI</button>
+      </div>
+
+      <div class="progress-track">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+      <p id="status" role="status" aria-live="polite">尚未載入模型。</p>
+
+      <button id="generateBtn" class="primary" type="button" disabled>
+        ② 生成小說架構
+      </button>
     </section>
 
-    <div class="layout">
-      <section class="card">
-        <h2>01 / 設定你的小說</h2>
+    <section class="card">
+      <div class="actions" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0">02 / 創作藍圖</h2>
+        <button id="copyBtn" class="secondary" type="button" disabled>複製 JSON</button>
+      </div>
 
-        <form id="storyForm">
-          <div class="field">
-            <label for="genre">小說風格</label>
-            <select id="genre" name="genre" required>
-              <option value="奇幻冒險">奇幻冒險</option>
-              <option value="本格推理">本格推理</option>
-              <option value="科幻">科幻</option>
-              <option value="校園青春">校園青春</option>
-              <option value="愛情">愛情</option>
-              <option value="懸疑驚悚">懸疑驚悚</option>
-              <option value="歷史">歷史</option>
-              <option value="輕鬆喜劇">輕鬆喜劇</option>
-              <option value="自訂原創風格">自訂原創風格</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="customStyle">補充風格描述 <span class="optional">（選填）</span></label>
-            <input id="customStyle" name="customStyle"
-              maxlength="300" placeholder="例如：節奏明快、心理描寫細膩">
-          </div>
-
-          <div class="two-col">
-            <div class="field">
-              <label for="wordCount">預計總字數</label>
-              <select id="wordCount" name="wordCount">
-                <option value="10000">1 萬字</option>
-                <option value="30000">3 萬字</option>
-                <option value="50000" selected>5 萬字</option>
-                <option value="100000">10 萬字</option>
-                <option value="custom">自訂</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="chapters">章節數量</label>
-              <input id="chapters" name="chapters"
-                type="number" min="1" max="100" value="20" required>
-            </div>
-          </div>
-
-          <div class="field" id="customWordsField" hidden>
-            <label for="customWords">自訂總字數</label>
-            <input id="customWords" type="number"
-              min="1000" max="500000" value="50000">
-          </div>
-
-          <div class="field">
-            <label for="title">小說名稱 <span class="optional">（選填）</span></label>
-            <input id="title" name="title" maxlength="100"
-              placeholder="留白則由 AI 提供建議">
-          </div>
-
-          <div class="field">
-            <label for="protagonist">主角名稱 <span class="optional">（選填）</span></label>
-            <input id="protagonist" name="protagonist" maxlength="60"
-              placeholder="留白則由 AI 自行設計">
-          </div>
-
-          <div class="field">
-            <label for="concept">故事核心概念</label>
-            <textarea id="concept" name="concept" maxlength="3000"
-              placeholder="例如：一位失去記憶的學生，發現全校同學都隱瞞著同一個秘密。" required></textarea>
-            <div class="hint">描述你自己的靈感、角色目標或希望探討的議題。</div>
-          </div>
-
-          <div class="field">
-            <label for="ending">結局偏好</label>
-            <select id="ending" name="ending">
-              <option value="合理且完整的結局">合理且完整</option>
-              <option value="反轉結局">反轉結局</option>
-              <option value="開放式結局">開放式結局</option>
-              <option value="溫暖圓滿">溫暖圓滿</option>
-              <option value="悲劇結局">悲劇結局</option>
-              <option value="由AI依劇情決定">由 AI 決定</option>
-            </select>
-          </div>
-
-          <div class="safety">
-            <strong>原創與安全原則</strong><br>
-            本工具要求 AI 獨立創作，不刻意複製既有作品或模仿特定作者的獨特表達，並拒絕不適當的違法操作指引。自動檢查無法保證絕對不侵權或完全合法。
-          </div>
-
-          <button class="primary" id="generateBtn" type="submit">
-            ✦ 生成小說架構
-          </button>
-          <p class="status" id="status" role="status" aria-live="polite"></p>
-        </form>
-      </section>
-
-      <section class="card" aria-label="小說生成結果">
-        <div class="results-header">
-          <h2>02 / 創作藍圖</h2>
-          <button type="button" class="secondary" id="copyBtn" disabled>
-            複製結果
-          </button>
+      <div id="results">
+        <div class="empty">
+          <p style="font-size:32px">✧</p>
+          <p>先載入 AI 模型，再生成你的故事。</p>
+          <p>第一次載入需要下載模型，請保持網路連線。</p>
         </div>
+      </div>
+    </section>
+  </div>
+</main>
 
-        <div id="results" aria-live="polite">
-          <div class="empty">
-            <p style="font-size:32px">✧</p>
-            <p>你的故事，將在這裡展開。</p>
-            <p>填寫左側設定，連接 AI 後即可開始生成。</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
+<footer>
+  StoryForge · 瀏覽器本機 AI 小說架構生成器<br>
+  AI 生成結果可能有錯誤或與既有作品相似，請自行審閱。
+</footer>
 
-  <footer>
-    StoryForge · AI 原創小說架構生成器<br>
-    生成內容請自行審閱，並確認符合適用法律與著作權規範。
-  </footer>
+<script type="module">
+  import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
-  <script>
-    /*
-      上線前設定：
-      1. 部署自己的後端 API。
-      2. 將 API_ENDPOINT 改為實際的後端網址。
-      3. 不要將 AI API 金鑰寫在這個 HTML 檔案裡。
-    */
-    const API_ENDPOINT = "/api/generate";
+  // 若模型名稱有變動，請到 WebLLM 官方預建模型清單確認。
+  const MODEL_ID = "Qwen2-1.5B-Instruct-q4f16_1-MLC";
 
-    const form = document.getElementById("storyForm");
-    const statusBox = document.getElementById("status");
-    const generateBtn = document.getElementById("generateBtn");
-    const results = document.getElementById("results");
-    const copyBtn = document.getElementById("copyBtn");
+  const $ = id => document.getElementById(id);
+  let engine = null;
+  let lastResult = null;
+  let busy = false;
 
-    let latestResult = null;
+  function setStatus(message, type = "") {
+    $("status").textContent = message;
+    $("status").className = type;
+  }
 
-    document.getElementById("wordCount").addEventListener("change", event => {
-      document.getElementById("customWordsField").hidden =
-        event.target.value !== "custom";
+  function setProgress(value) {
+    $("progressBar").style.width = Math.max(0, Math.min(100, value)) + "%";
+  }
+
+  function addText(parent, tag, value) {
+    const el = document.createElement(tag);
+    el.textContent = value == null ? "" : String(value);
+    parent.appendChild(el);
+    return el;
+  }
+
+  function addSection(parent, heading) {
+    const section = document.createElement("section");
+    section.className = "section";
+    addText(section, "h3", heading);
+    parent.appendChild(section);
+    return section;
+  }
+
+  function addParagraph(parent, label, value) {
+    const p = document.createElement("p");
+    if (label) {
+      const strong = document.createElement("strong");
+      strong.textContent = label + "：";
+      p.appendChild(strong);
+    }
+    p.appendChild(document.createTextNode(value == null ? "" : String(value)));
+    parent.appendChild(p);
+  }
+
+  function renderList(parent, items, formatItem) {
+    const ul = document.createElement("ul");
+    (Array.isArray(items) ? items : []).forEach(item => {
+      addText(ul, "li", formatItem(item));
+    });
+    parent.appendChild(ul);
+  }
+
+  function renderResult(data) {
+    const root = $("results");
+    root.replaceChildren();
+
+    let section = addSection(root, "小說名稱");
+    addParagraph(section, "", data.title || "尚未命名");
+
+    section = addSection(root, "故事大綱");
+    addParagraph(section, "", data.outline || "無內容");
+
+    section = addSection(root, "主要角色");
+    const people = document.createElement("div");
+    people.className = "relation-list";
+
+    (data.characters || []).forEach(c => {
+      const person = document.createElement("div");
+      person.className = "person";
+      addText(person, "strong", c.name || "未命名角色");
+      addText(person, "small", c.role || "角色");
+      people.appendChild(person);
     });
 
-    // 使用 textContent 建立文字節點，避免把 AI 回傳內容當成 HTML 執行。
-    function addText(parent, tag, value) {
-      const element = document.createElement(tag);
-      element.textContent = value == null ? "" : String(value);
-      parent.appendChild(element);
-      return element;
+    section.appendChild(people);
+
+    (data.characters || []).forEach(c => {
+      const p = document.createElement("p");
+      const b = document.createElement("strong");
+      b.textContent = (c.name || "角色") + "：";
+      p.append(b, document.createTextNode(
+        "目標：" + (c.goal || "未設定") +
+        "；個性：" + (c.personality || "未設定") +
+        "；秘密：" + (c.secret || "未設定")
+      ));
+      section.appendChild(p);
+    });
+
+    section = addSection(root, "角色關係圖");
+    addText(section, "p",
+      "以下以角色節點及關係連線文字呈現。這是故事規劃圖，不代表真實人物關係。");
+
+    (data.relationships || []).forEach(r => {
+      const line = document.createElement("div");
+      line.className = "relation";
+      line.textContent =
+        (r.from || "?") + "  →  " +
+        (r.relation || "關係未定") + "  →  " + (r.to || "?");
+      section.appendChild(line);
+    });
+
+    section = addSection(root, "章節名稱與撰寫建議");
+    (data.chapters || []).forEach(ch => {
+      const card = document.createElement("div");
+      card.className = "chapter";
+      addText(card, "strong",
+        "第 " + ch.number + " 章｜" + (ch.title || "未命名"));
+
+      addParagraph(card, "劇情摘要", ch.summary);
+      addParagraph(card, "撰寫建議", ch.advice);
+      if (ch.foreshadowing) addParagraph(card, "本章伏筆", ch.foreshadowing);
+
+      section.appendChild(card);
+    });
+
+    section = addSection(root, "伏筆設計與回收方式");
+    renderList(section, data.foreshadowing, f =>
+      (f.clue || "伏筆") + "｜埋設：" + (f.plant || "未設定") +
+      "｜回收：" + (f.payoff || "未設定")
+    );
+
+    section = addSection(root, "原創性與安全注意事項");
+    addParagraph(section, "", data.safetyReview ||
+      "這是 AI 自我檢視結果，不構成法律保證。");
+
+    $("copyBtn").disabled = false;
+  }
+
+  function extractJSON(text) {
+    let cleaned = text.trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "");
+
+    const first = cleaned.indexOf("{");
+    const last = cleaned.lastIndexOf("}");
+
+    if (first >= 0 && last > first) {
+      cleaned = cleaned.slice(first, last + 1);
     }
 
-    function addSection(parent, heading, content) {
-      const section = document.createElement("section");
-      section.className = "result-section";
-      addText(section, "h3", heading);
+    return JSON.parse(cleaned);
+  }
 
-      const body = document.createElement("div");
-      body.className = "result-content";
+  $("loadBtn").addEventListener("click", async () => {
+    if (busy || engine) return;
 
-      if (typeof content === "string") {
-        addText(body, "p", content);
-      } else if (Array.isArray(content)) {
-        const list = document.createElement("ul");
-        content.forEach(item => addText(list, "li", item));
-        body.appendChild(list);
-      } else if (content && typeof content === "object") {
-        Object.entries(content).forEach(([key, value]) => {
-          const p = document.createElement("p");
-          const strong = document.createElement("strong");
-          strong.textContent = key + "：";
-          p.append(strong, document.createTextNode(String(value)));
-          body.appendChild(p);
-        });
-      }
+    busy = true;
+    $("loadBtn").disabled = true;
+    setProgress(0);
+    setStatus("正在初始化 WebLLM……第一次下載可能需要較長時間。");
 
-      section.appendChild(body);
-      parent.appendChild(section);
-    }
+    try {
+      engine = await webllm.CreateMLCEngine(MODEL_ID, {
+        initProgressCallback: report => {
+          const text = report.text || "正在載入模型……";
+          setStatus(text);
 
-    function renderResult(data) {
-      results.replaceChildren();
-
-      addSection(results, "小說名稱", data.title || "尚未命名");
-      addSection(results, "故事大綱", data.outline || "無內容");
-
-      addSection(results, "角色設定與關係", data.characters || []);
-
-      if (data.relationships) {
-        addSection(results, "角色關係圖說明", data.relationships);
-      }
-
-      const chapters = document.createElement("section");
-      chapters.className = "result-section";
-      addText(chapters, "h3", "章節規劃");
-
-      (data.chapters || []).forEach(chapter => {
-        const card = document.createElement("div");
-        card.className = "chapter";
-        addText(card, "strong",
-          `第 ${chapter.number} 章｜${chapter.title}`);
-
-        addText(card, "p", "劇情摘要：" + (chapter.summary || "待補充"));
-        addText(card, "p", "撰寫建議：" + (chapter.advice || "待補充"));
-
-        if (chapter.foreshadowing) {
-          addText(card, "p", "伏筆提示：" + chapter.foreshadowing);
+          // WebLLM 回報的文字不一定帶有百分比，僅在能解析時更新進度條。
+          const match = text.match(/(\d+(?:\.\d+)?)\s*%/);
+          if (match) setProgress(Number(match[1]));
         }
-
-        chapters.appendChild(card);
       });
 
-      results.appendChild(chapters);
+      setProgress(100);
+      $("generateBtn").disabled = false;
+      setStatus("本機 AI 已載入，可以開始生成。", "success");
+      $("loadBtn").textContent = "模型已載入";
+    } catch (error) {
+      engine = null;
+      $("loadBtn").disabled = false;
+      setStatus(
+        "模型載入失敗：" + (error.message || String(error)) +
+        "。請確認瀏覽器支援 WebGPU、網路正常且裝置資源足夠。",
+        "error"
+      );
+    } finally {
+      busy = false;
+    }
+  });
 
-      addSection(results, "伏筆設計與回收", data.foreshadowing || []);
-      addSection(results, "原創性與安全檢查", data.safetyReview ||
-        "尚未提供檢查報告，請自行審閱。");
+  $("generateBtn").addEventListener("click", async () => {
+    if (!engine || busy) return;
 
-      copyBtn.disabled = false;
+    const concept = $("concept").value.trim();
+    const count = Number($("count").value);
+
+    if (!concept) {
+      setStatus("請先輸入故事核心概念。", "error");
+      $("concept").focus();
+      return;
     }
 
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
+    if (!Number.isInteger(count) || count < 1 || count > 30) {
+      setStatus("章節數量請設定為 1 至 30 章。", "error");
+      return;
+    }
 
-      const wordCountSelect = document.getElementById("wordCount");
-      const wordCount = wordCountSelect.value === "custom"
-        ? Number(document.getElementById("customWords").value)
-        : Number(wordCountSelect.value);
+    const settings = {
+      genre: $("genre").value,
+      style: $("style").value.trim() || "自然流暢、具有原創性",
+      wordCount: Number($("words").value),
+      chapters: count,
+      title: $("title").value.trim() || "請自行設計原創名稱",
+      protagonist: $("heroName").value.trim() || "請自行設計主角",
+      concept,
+      ending: $("ending").value
+    };
 
-      const payload = {
-        genre: document.getElementById("genre").value,
-        customStyle: document.getElementById("customStyle").value.trim(),
-        wordCount,
-        chapters: Number(document.getElementById("chapters").value),
-        title: document.getElementById("title").value.trim(),
-        protagonist: document.getElementById("protagonist").value.trim(),
-        concept: document.getElementById("concept").value.trim(),
-        ending: document.getElementById("ending").value
-      };
+    busy = true;
+    $("generateBtn").disabled = true;
+    $("loadBtn").disabled = true;
+    $("copyBtn").disabled = true;
+    setStatus("AI 正在規劃故事。小型模型可能需要數分鐘……");
 
-      if (!Number.isInteger(payload.wordCount) ||
-          payload.wordCount < 1000 || payload.wordCount > 500000) {
-        statusBox.className = "status error";
-        statusBox.textContent = "請輸入 1,000 至 500,000 之間的總字數。";
-        return;
+    const systemPrompt = `
+你是一名原創小說架構助手。
+請使用繁體中文，獨立創作全新的故事設定。
+
+重要規則：
+1. 不得刻意複製現有小說、漫畫、電影、遊戲的受保護情節、
+   角色組合、台詞或具體表達。
+2. 不直接模仿特定作者的獨特文風。
+3. 如題材涉及犯罪、暴力或危險事件，只能以非操作性的虛構敘事方式處理，
+   不提供可直接實施的違法或傷害他人的操作步驟。
+4. 不宣稱作品已通過法律審查，也不保證絕對不侵權。
+5. 內容必須連貫，角色動機合理，伏筆應能在後續回收。
+6. 請只輸出合法 JSON，不要使用 Markdown 程式碼區塊。
+7. 所有欄位使用指定名稱。不得省略 chapters 或 characters 等陣列。
+
+JSON 格式：
+{
+  "title": "小說名稱",
+  "outline": "故事完整大綱",
+  "characters": [
+    {
+      "name": "角色名稱",
+      "role": "角色定位",
+      "goal": "角色目標",
+      "personality": "性格",
+      "secret": "秘密或內在衝突"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "角色A",
+      "to": "角色B",
+      "relation": "關係與衝突"
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "章節標題",
+      "summary": "本章劇情摘要",
+      "advice": "寫作建議",
+      "foreshadowing": "本章伏筆"
+    }
+  ],
+  "foreshadowing": [
+    {
+      "clue": "伏筆內容",
+      "plant": "埋設位置與暗示方式",
+      "payoff": "回收方式"
+    }
+  ],
+  "safetyReview": "指出仍需人工審閱的原創性與安全風險，不得保證絕對合法或不侵權。"
+}
+
+chapters 陣列必須恰好有使用者指定的章節數。
+每章都要有標題、摘要、撰寫建議。
+characters 至少包含主角與兩名其他角色。
+relationships 需要連結角色並說明關係。
+foreshadowing 至少提出三個可回收的伏筆。
+`;
+
+    const userPrompt = `
+請依照以下設定創作小說架構。
+風格：${settings.genre}
+風格補充：${settings.style}
+目標總字數：${settings.wordCount} 字
+章節數：${settings.chapters}
+小說名稱偏好：${settings.title}
+主角名稱偏好：${settings.protagonist}
+故事核心概念：${settings.concept}
+結局偏好：${settings.ending}
+
+請注意：字數是整部小說的目標篇幅，不是要求你一次寫出整部小說。
+請規劃章節的劇情進度，使各章有不同功能，並保持故事因果連貫。
+只回傳符合規定的 JSON。
+`;
+
+    try {
+      const response = await engine.chat.completions.create({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 4096
+      });
+
+      const raw = response.choices?.[0]?.message?.content || "";
+      const data = extractJSON(raw);
+
+      if (!data || typeof data.outline !== "string" ||
+          !Array.isArray(data.chapters) ||
+          !Array.isArray(data.characters) ||
+          !Array.isArray(data.relationships) ||
+          !Array.isArray(data.foreshadowing)) {
+        throw new Error("AI 回傳的資料格式不完整，請縮短設定或減少章節數後重試。");
       }
 
-      if (payload.chapters < 1 || payload.chapters > 100) {
-        statusBox.className = "status error";
-        statusBox.textContent = "章節數量必須介於 1 至 100 章。";
-        return;
-      }
-
-      generateBtn.disabled = true;
-      generateBtn.textContent = "正在構思故事……";
-      statusBox.className = "status";
-      statusBox.textContent = "正在等待 AI 回應，請稍候。";
-
-      try {
-        const response = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            response.status === 404
-              ? "尚未部署後端 API，請先完成 AI 連線設定。"
-              : `服務回應錯誤（HTTP ${response.status}）。`
-          );
-        }
-
-        const data = await response.json();
-
-        // 最低限度的結構檢查；完整安全審核必須由後端執行。
-        if (!data || typeof data.outline !== "string" ||
-            !Array.isArray(data.chapters) ||
-            !Array.isArray(data.characters) ||
-            !Array.isArray(data.foreshadowing)) {
-          throw new Error("AI 回傳格式不正確，請檢查後端輸出。");
-        }
-
-        if (data.chapters.length !== payload.chapters) {
-          throw new Error("回傳章節數與設定不符，請重新生成。");
-        }
-
-        latestResult = data;
-        renderResult(data);
-
-        statusBox.className = "status success";
-        statusBox.textContent =
-          "生成完成。請檢查故事原創性、內容安全與法律風險。";
-      } catch (error) {
-        statusBox.className = "status error";
-        statusBox.textContent = error.message ||
-          "連線失敗，請稍後再試。";
-      } finally {
-        generateBtn.disabled = false;
-        generateBtn.textContent = "✦ 生成小說架構";
-      }
-    });
-
-    copyBtn.addEventListener("click", async () => {
-      if (!latestResult) return;
-
-      try {
-        await navigator.clipboard.writeText(
-          JSON.stringify(latestResult, null, 2)
+      if (data.chapters.length !== settings.chapters) {
+        throw new Error(
+          "AI 回傳了 " + data.chapters.length +
+          " 章，但你設定了 " + settings.chapters +
+          " 章。請減少章節數再試一次。"
         );
-        statusBox.className = "status success";
-        statusBox.textContent = "已複製完整結果（JSON 格式）。";
-      } catch {
-        statusBox.className = "status error";
-        statusBox.textContent =
-          "無法直接複製，請使用瀏覽器允許的安全環境開啟網站。";
       }
-    });
-  </script>
+
+      lastResult = data;
+      renderResult(data);
+      setStatus("生成完成。請檢查劇情連貫性、原創性與安全性。", "success");
+    } catch (error) {
+      setStatus(
+        "生成失敗：" + (error.message || String(error)) +
+        "。小型模型可能無法一次輸出完整 JSON，建議先生成 5 章。",
+        "error"
+      );
+    } finally {
+      busy = false;
+      $("generateBtn").disabled = !engine;
+      $("loadBtn").disabled = !!engine;
+    }
+  });
+
+  $("copyBtn").addEventListener("click", async () => {
+    if (!lastResult) return;
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(lastResult, null, 2));
+      setStatus("已複製完整 JSON 結果。", "success");
+    } catch {
+      setStatus("複製失敗，請確認瀏覽器允許剪貼簿存取。", "error");
+    }
+  });
+</script>
 </body>
 </html>
